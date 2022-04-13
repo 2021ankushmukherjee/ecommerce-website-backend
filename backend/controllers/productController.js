@@ -4,10 +4,14 @@ const ErrorHandeler = require("../utils/errorHandeler");
 
 
 
+
 // Create a product --Admin
 exports.createProduct = async (req, res) => {
 
     try {
+
+        req.body.user = req.user.id;
+
         const product = await Product.create(req.body);
 
         res.status(200).json({
@@ -78,7 +82,7 @@ exports.getSingleProduct = async (req, res, next) => {
 
 
         if (!product) {
-            return next(new ErrorHandeler("Product not found", 404));
+            return next(new ErrorHandeler("product not found", 404));
 
         }
 
