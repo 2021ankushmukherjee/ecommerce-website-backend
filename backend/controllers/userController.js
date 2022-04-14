@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const ErrorHandeler = require("../utils/errorHandeler");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 
 exports.registerUser = async (req, res) => {
@@ -131,7 +132,7 @@ exports.forgetPassword = async (req, res, next) => {
             await sendEmail({
 
                 email: user.email,
-                subject: `ecommerce password recovery`,
+                subject: `ecommerce ankush password recovery`,
                 message,
 
             });
@@ -151,7 +152,7 @@ exports.forgetPassword = async (req, res, next) => {
 
             await user.save({ validateBeforeSave: false });
 
-            return next(new ErrorHandeler(err.message, 500 ));
+            return next(new ErrorHandeler(err.message, 500));
         }
 
     }
@@ -169,3 +170,104 @@ exports.forgetPassword = async (req, res, next) => {
 
 // RESET PASSWORD
 
+exports.resetPassword = async (req, res, next) => {
+
+
+    try {
+        // Creating token hash
+
+        const resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken: resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() },
+        })
+
+        if (!user) {
+
+            return next(new ErrorHandeler("Reset password token has been invalid or expired", 400));
+        }
+
+        if (req.body.password !== req.body.confirmPassword) {
+
+            return next(new ErrorHandeler("password does not matched", 400));
+        }
+
+        user.password = req.body.password;
+        user.resetPasswordToken = undefined;
+        user.resetPaswordExpire = undefined;
+
+        await user.save();
+
+        sendToken(user, 200, res);
+
+    }
+    catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: `reset password not working for ${err}`
+        });
+
+
+    }
+
+}
+
+
+// GET USER DETIALS
+
+exports.getUserDetials = async (req,res) => {
+
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+
+        success: true,
+        user,
+    });
+
+}
+
+
+// UPDATE ROLE -- ADMIN
+
+exports.updateUserRole = async (req, res, next) => {
+
+    try {
+
+        const email = req.body.email;
+        const role = req.body.role;
+
+
+        if (!email || !role) {
+
+            return next(new ErrorHandeler("please enter user email or role", 404));
+        }
+
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+
+            return next(new ErrorHandeler("User not found", 404));
+        }
+
+        
+        
+        updatedUserRole = await User.findOneAndUpdate({email:req.body.email}, {role:req.body.role}, { new: true });
+
+        res.status(201).json({
+            success: true,
+            updatedUserRole
+        });
+
+    }
+    catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: `Cant update user role for ${err.message}`
+        });
+
+    }
+}

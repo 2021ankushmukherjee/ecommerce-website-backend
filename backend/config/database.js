@@ -13,11 +13,11 @@ mongoose.connect(process.env.DB, {
 
     console.log("Database connected successfully");
 })
-.catch((err)=>{
+// .catch((err)=>{
 
-    console.log(`Database not connected successfully for ${err}`);
+//     console.log(`Database not connected successfully for ${err}`);
 
-});
+// });
 
 }
 
