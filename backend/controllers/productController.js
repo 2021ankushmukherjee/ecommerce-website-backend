@@ -43,9 +43,9 @@ exports.getAllProducts = async (req, res) => {
         const productCount = await Product.countDocuments();
 
         const apiFeature = new ApiFeatures(Product.find(), req.query)
-        .search()
-        .filter()
-        .pagination(resultPerPage);
+            .search()
+            .filter()
+            .pagination(resultPerPage);
 
         const products = await apiFeature.query;
         //const products = await Product.find();
@@ -153,7 +153,7 @@ exports.updateProduct = async (req, res) => {
         });
 
 
-
+        
     }
 
 }
@@ -198,6 +198,79 @@ exports.deleteProduct = async (req, res) => {
             message: "Product cannot deleted!"
         });
     }
+
+
+}
+
+// WRITE OR UPDATE REVIEW
+
+exports.createProductReview = async (req, res) => {
+
+
+    try {
+
+        const { rating, comment, productId } = req.body;
+
+        const review = {
+            user: req.user._id,
+            name: req.user.name,
+            rating: Number(rating),
+            comment,
+        }
+
+
+
+        const product = await Product.findById(productId);
+
+        console.log(product);
+
+        const isReviewed = product.reviews.find((rev) => rev.user.toString() === req.user._id.toString());
+
+        if (isReviewed) {
+
+            product.reviews.forEach(rev => {
+
+                if ((rev) => rev.user.toString() === req.user._id.toString()) {
+
+                    rev.rating = rating;
+                    rev.comment = comment;
+                }
+            });
+
+        }
+        else {
+
+            product.reviews.push(review)
+            product.numOfReviews = product.reviews.length
+
+        }
+
+        let avg = 0;
+
+        product.ratings = product.reviews.forEach(rev => {
+
+            avg = avg + rev.ratings;
+        }) / product.reviews.length;
+
+        await product.save({ validateBeforeSave: false });
+
+        res.status(200).json({
+            success: true,
+
+        });
+
+    }
+    catch (err) {
+
+        console.log(err);
+        res.status(400).json({
+
+            success: false,
+            message: `cant reviewed for:- ${err}`
+        });
+    }
+
+
 
 
 }

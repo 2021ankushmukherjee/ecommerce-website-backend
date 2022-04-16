@@ -17,7 +17,7 @@ module.exports = (err,req,res,next)=>{
 
     // Mongoose Dublicate key error
 
-    if(err.code === 11000){
+    if(err.code == 11000){
 
         const message = `Dublicate ${Object.keys(err.keyValue)} Entered`
         err = new ErrorHandeler(message, 400);

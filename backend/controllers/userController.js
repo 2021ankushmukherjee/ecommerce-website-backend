@@ -5,6 +5,8 @@ const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 
 
+// REGISTER USER
+
 exports.registerUser = async (req, res) => {
 
 
@@ -217,20 +219,191 @@ exports.resetPassword = async (req, res, next) => {
 
 // GET USER DETIALS
 
-exports.getUserDetials = async (req,res) => {
+exports.getUserDetials = async (req, res) => {
 
-    const user = await User.findById(req.user.id);
+    try {
+        const user = await User.findById(req.user.id);
 
-    res.status(200).json({
+        res.status(200).json({
 
-        success: true,
-        user,
-    });
+            success: true,
+            user,
+        });
+    }
+    catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: `Get User not working for ${err}`
+        });
+
+    }
+
+}
+
+// UPDATE USER PASSWORD
+
+exports.updateUserPassword = async (req, res, next) => {
+
+    try {
+
+        const user = await User.findById(req.user.id).select("+password");
+
+        console.log(user);
+
+
+
+        const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
+
+
+        if (!isPasswordMatched) {
+
+            return next(new ErrorHandeler("Old password is incorrect", 400));
+        }
+
+        if (req.body.newPassword !== req.body.confirmPassword) {
+
+
+            return next(new ErrorHandeler("Password doesnot match", 400));
+        }
+
+        user.password = req.body.newPassword;
+
+        await user.save();
+
+        sendToken(user, 200, res);
+
+
+    }
+    catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: `Update password not working for ${err}`
+        });
+
+    }
+}
+
+
+
+// UPDATE USER PROFILE
+
+exports.updateUserProfile = async (req, res, next) => {
+
+    try {
+
+        const newUserData = {
+
+            name: req.body.name,
+            email: req.body.email
+
+        }
+
+
+        const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+            new: true,
+            runValidators:true,
+            useFindAndModify:false
+        });
+
+
+        res.status(200).json({
+
+            success:true,
+            user
+        
+        });
+
+
+    }
+    catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: `Update password not working for ${err}`
+        });
+
+    }
+}
+
+
+// GET ALL USERS - ADMIN
+
+exports.getAllUsers = async (req,res) => {
+
+    try{
+
+        const users = await User.find();
+
+        res.status(200).json({
+
+            success: true,
+            users
+        });
+    }
+    catch(err){
+
+        res.status(400).json({
+            success: false,
+            message: `Cannot get users for:- ${err}`
+        });
+
+    }
 
 }
 
 
-// UPDATE ROLE -- ADMIN
+
+// GET SINGLE USER - ADMIN
+
+exports.getSingleUser = async (req,res,next) => {
+
+    try{
+
+        const email = req.body.email;
+
+
+        if (email == null) {
+
+            return next(new ErrorHandeler("please enter email id", 404));
+        }
+
+        if (!email) {
+
+            return next(new ErrorHandeler("please enter valid email id", 404));
+        }
+
+        const user = await User.findOne({ email: email });
+
+
+        if (!user) {
+
+            return next(new ErrorHandeler("User not found", 404));
+        }
+
+        res.status(200).json({
+
+            success: true,
+            user
+        });
+    }
+    catch(err){
+
+        res.status(400).json({
+            success: false,
+            message: `Cannot get user for:- ${err}`
+        });
+
+    }
+
+}
+
+
+
+
+
+// UPDATE USER ROLE -- ADMIN
 
 exports.updateUserRole = async (req, res, next) => {
 
@@ -238,7 +411,7 @@ exports.updateUserRole = async (req, res, next) => {
 
         const email = req.body.email;
         const role = req.body.role;
-
+        
 
         if (!email || !role) {
 
@@ -252,9 +425,9 @@ exports.updateUserRole = async (req, res, next) => {
             return next(new ErrorHandeler("User not found", 404));
         }
 
-        
-        
-        updatedUserRole = await User.findOneAndUpdate({email:req.body.email}, {role:req.body.role}, { new: true });
+
+
+        updatedUserRole = await User.findOneAndUpdate({ email: req.body.email }, { role: req.body.role }, { new: true });
 
         res.status(201).json({
             success: true,
@@ -271,3 +444,46 @@ exports.updateUserRole = async (req, res, next) => {
 
     }
 }
+
+
+// DELETE USER --ADMIN
+
+exports.deleteUser = async (req,res,next) => {
+
+    try{
+    const email = req.body.email;
+
+    if (!email) {
+
+        return next(new ErrorHandeler("please enter user email", 404));
+    }
+
+    const user = await User.findOne({ email: email });
+
+
+    if (!user) {
+
+        return next(new ErrorHandeler("User not found", 404));
+    }
+
+    delUser = await User.findOneAndDelete({ email: req.body.email },{new:true});
+
+    res.status(201).json({
+        success: true,
+        message: "User deleted successfully"
+    });
+   }
+   catch(err){
+
+
+    res.status(400).json({
+        success: false,
+        message: `Cant delete user for ${err.message}`
+    });
+
+   }
+
+}
+
+
+
