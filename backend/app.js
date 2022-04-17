@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(upload());
+
 
 // Route Imports
 const product = require("./routes/productRoutes");

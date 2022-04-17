@@ -85,14 +85,7 @@ exports.getSingleProduct = async (req, res, next) => {
             return next(new ErrorHandeler("product not found", 404));
 
         }
-
-        // if (!product) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Product not found!"
-        //     });
-        // }
-
+        
         res.status(200).json({
             success: true,
             product
@@ -174,13 +167,6 @@ exports.deleteProduct = async (req, res) => {
 
         }
 
-        // if (!product) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Product not found!"
-        //     });
-        // }
-
         await product.remove();
 
         res.status(200).json({
@@ -217,8 +203,6 @@ exports.createProductReview = async (req, res) => {
             rating: Number(rating),
             comment,
         }
-
-
 
         const product = await Product.findById(productId);
 
