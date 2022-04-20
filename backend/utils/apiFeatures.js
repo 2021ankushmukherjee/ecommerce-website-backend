@@ -39,7 +39,7 @@ class ApiFeatures {
 
         return this;
 
-    }
+    }   
 
     pagination(resultPerPage){
 

@@ -122,13 +122,6 @@ exports.updateProduct = async (req, res) => {
         }
 
 
-        // if (!product) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Product not found!"
-        //     });
-        // }
-
         updateproduct = await Product.findByIdAndUpdate(req.body.id, req.body, { new: true });
 
         res.status(201).json({
@@ -234,7 +227,9 @@ exports.createProductReview = async (req, res) => {
         product.ratings = product.reviews.forEach(rev => {
 
             avg = avg + rev.ratings;
-        }) / product.reviews.length;
+        });
+
+        avg / product.reviews.length;
 
         await product.save({ validateBeforeSave: false });
 
@@ -258,3 +253,6 @@ exports.createProductReview = async (req, res) => {
 
 
 }
+
+
+

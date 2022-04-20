@@ -36,8 +36,6 @@ exports.registerUser = async (req, res) => {
             message: `cannot create user for ${err}`
         });
 
-
-
     }
 
 }
@@ -299,6 +297,8 @@ exports.updateUserProfile = async (req, res, next) => {
             email: req.body.email
 
         }
+
+        // we will add cloudinary later 
 
 
         const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
