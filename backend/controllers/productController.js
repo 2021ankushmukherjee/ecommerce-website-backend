@@ -102,9 +102,8 @@ exports.getSingleProduct = async (req, res, next) => {
     }
 
 
-
+    
 }
-
 
 
 // Update a Product --Admin
@@ -254,5 +253,98 @@ exports.createProductReview = async (req, res) => {
 
 }
 
+// GET ALL REVIEWS OF A SINGLE PRODUCT
+
+exports.getProductReviews = async (req,res,next) => {
+
+    try{
+
+        const product = await Product.findById(req.body.id);
+
+        if(!product){
+
+            return next(new ErrorHandeler("Product not found", 404));
+        }
+
+
+        res.status(200).json({
+
+            success:true,
+            reviews:product.reviews,
+        })
+
+
+    }
+    catch(err){
+
+        res.status(400).json({
+
+            success: false,
+            message: `cant show all reviews for:- ${err}`,
+        });
+    }
+
+}
+
+
+// DELETE REVIEW
+
+exports.deleteReview = async (req,res,next) =>{
+
+    try{
+
+        const product = await Product.findById(req.body.productId);
+
+        if(!product){
+
+            return next(new ErrorHandeler("product not found", 404));
+        }
+
+        const reviews = product.reviews.filter(rev => rev._id.toString() !== req.query.id.toString());
+
+
+        let avg = 0;
+
+        reviews.forEach(rev => {
+
+            avg = avg + rev.ratings;
+        });
+
+        const ratings = avg / reviews.length;
+
+        const numOfReviews = reviews.length;
+
+        await product.findByIdAndUpdate(req.query.productId, {
+
+            reviews,
+            ratings,
+            numOfReviews
+        },
+        {
+            new:true,
+            runValidators: true,
+            useFindAndModify: false,
+        });
+
+        res.status(200).json({
+
+            success: true
+        });
+
+        
+    }
+    catch(err){
+
+        res.status(400).json({
+
+            success:true,
+            message: `cant delete reviews for:- ${err}`
+        });
+
+
+    }
+
+
+}
 
 

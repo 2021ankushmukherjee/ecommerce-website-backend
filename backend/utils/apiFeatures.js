@@ -21,13 +21,13 @@ class ApiFeatures {
     
     filter(){
         const queryCopy = {...this.querystr}
-        console.log(queryCopy);
+        
         
         // Removing fields for category
         const removeFields = ["keyword", "page", "limit"];
         removeFields.forEach(key=>delete queryCopy[key]);
-        console.log(removeFields);
-        console.log(queryCopy);
+       
+     
        
         // Filter for Price and Rating
 
@@ -40,7 +40,7 @@ class ApiFeatures {
         return this;
 
     }   
-
+    
     pagination(resultPerPage){
 
         const currentPage = Number(this.querystr.page) || 1;
